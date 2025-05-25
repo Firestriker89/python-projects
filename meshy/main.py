@@ -5,7 +5,11 @@ from reality.conflict_resolver import ConflictResolver
 from config import DEFAULT_RESOLUTION_STRATEGY
 resolver = ConflictResolver(strategy=DEFAULT_RESOLUTION_STRATEGY)
 from visualization.render_3d import render_timeline_nodes
+import sys
+from pathlib import Path
 
+# Add project root to Python path
+sys.path.append(str(Path(__file__).resolve().parent.parent))
 
 # Step 1: Create two human agents
 agent_a = HumanAgent("agent_alpha")

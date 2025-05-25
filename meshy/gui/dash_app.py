@@ -10,11 +10,7 @@ from datetime import datetime
 from visualization.observer_view import render_timeline_nodes
 from visualization.branch_graph import render_branch_graph
 import plotly.graph_objects as go
-import sys
-from pathlib import Path
 
-# Add project root to Python path
-sys.path.append(str(Path(__file__).resolve().parent.parent))
 # --- Setup dummy agents and events (real code would load from memory or file) ---
 agent_a = HumanAgent("agent_alpha")
 agent_b = HumanAgent("agent_beta")
