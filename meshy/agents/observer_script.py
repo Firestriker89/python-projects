@@ -45,5 +45,15 @@ class ObserverScriptEngine:
         elif cmd.startswith("log"):
             return self.log
 
+        elif cmd.startswith("mask certainty <"):
+            try:
+                threshold = float(cmd.split("<")[-1].strip())
+                original = context.get("nodes", [])
+                filtered = [node for node in original if node.intent_meta.get("certainty", 0.5) >= threshold]
+                context["nodes"] = filtered
+                return f"Masked nodes with certainty < {threshold}. {len(filtered)} remaining."
+            except Exception as e:
+                return f"Invalid certainty threshold: {e}"
         else:
             raise ValueError(f"Unknown observer command: {command}")
+

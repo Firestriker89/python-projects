@@ -5,6 +5,8 @@ python-dateutil
 
 # Optional visualization
 plotly  # Enables future 3D timeline visualizations
+dash
+dash-bootstrap-components
 
 # Development tools
 pytest
