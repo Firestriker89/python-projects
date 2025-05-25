@@ -1,6 +1,11 @@
 import dash
 from dash import html, dcc, Input, Output, State
 import dash_bootstrap_components as dbc
+import sys
+from pathlib import Path
+
+# Add project root to Python path
+sys.path.append(str(Path(__file__).resolve().parent.parent))
 
 from agents.human_agent import HumanAgent
 from agents.observer_entity import ObserverEntity
