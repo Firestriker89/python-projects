@@ -1,18 +1,23 @@
 import os
 import pandas as pd
 import plotly.graph_objects as go
-from timeline.node import TimelineNode
 from typing import List
+from timeline.node import TimelineNode
 
-def render_branch_graph(nodes: List[TimelineNode], title="Branch Graph"):
+def render_branch_graph(nodes: List[TimelineNode], title="Branch Graph", return_fig=False):
     """
-    Renders a Git-style commit graph showing parent-child relationships.
+    Renders a directed graph showing parent-child links between timeline nodes.
+    Layout:
+      - X-axis: time (as numeric timestamp)
+      - Y-axis: branch index (based on branch hash)
+
+    If return_fig=True, returns Plotly Figure for use in Dash apps.
+    Otherwise, writes to HTML and opens it.
     """
     if not nodes:
-        print("No nodes to graph.")
-        return
+        print("No nodes to render.")
+        return None
 
-    # Map nodes to a stable ID
     node_ids = {id(node): idx for idx, node in enumerate(nodes)}
 
     node_data = []
@@ -20,10 +25,9 @@ def render_branch_graph(nodes: List[TimelineNode], title="Branch Graph"):
     edge_y = []
     texts = []
 
-    for idx, node in enumerate(nodes):
-        # Layout horizontally by time, vertically by branch
+    for node in nodes:
         x = node.t.timestamp()
-        y = hash(node.branch_id) % 10  # crude vertical spacing
+        y = hash(node.branch_id) % 10  # crude vertical layout by branch
 
         node_data.append({
             "x": x,
@@ -34,7 +38,7 @@ def render_branch_graph(nodes: List[TimelineNode], title="Branch Graph"):
             "time": node.t.isoformat()
         })
 
-        texts.append(f"{node.agent_id} [{node.branch_id}]<br>{node.event_data.get('description')}")
+        texts.append(f"{node.agent_id or 'unknown'} [{node.branch_id}]<br>{node.event_data.get('description')}")
 
         for parent in node.parents:
             if id(parent) in node_ids:
@@ -74,5 +78,8 @@ def render_branch_graph(nodes: List[TimelineNode], title="Branch Graph"):
                         hovermode='closest'
                     ))
 
-    os.makedirs("output", exist_ok=True)
-    fig.write_html("output/branch_graph.html", auto_open=True)
+    if return_fig:
+        return fig
+    else:
+        os.makedirs("output", exist_ok=True)
+        fig.write_html("output/branch_graph.html", auto_open=True)

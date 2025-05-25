@@ -1,12 +1,13 @@
-"""
-Visualization Module
+# visualization/__init__.py
 
-This module contains visualization utilities and components for the Meshy system:
-- render_3d: 3D timeline and mesh rendering capabilities
-- observer_view: Observer-specific visualization tools
+"""
+Meshy Visualization Module
+
+Contains utilities for rendering timeline nodes, observer perspectives,
+and branching structure as 3D visualizations or directed graphs.
 """
 
+# Optional: expose frequently used rendering functions
+from .observer_view import render_observer_view
+from .branch_graph import render_branch_graph
 from .render_3d import render_timeline_nodes
-from .observer_view import ObserverView
-
-__all__ = ["render_timeline_nodes", "ObserverView"]

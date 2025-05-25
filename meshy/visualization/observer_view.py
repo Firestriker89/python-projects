@@ -1,49 +1,58 @@
-from datetime import datetime
-from typing import List, Dict, Any
-from agents.observer_entity import ObserverEntity
-from reality.conflict_resolver import ConflictResolver
-from reality.floor import FloorTag
+import os
+import pandas as pd
+import plotly.express as px
+from typing import List
 from timeline.node import TimelineNode
 
-class ObserverScriptEngine:
-    """
-    Allows an observer to execute commands to manipulate the timeline structure.
-    """
+# Emotion → Color mapping
+emotion_color_map = {
+    "grief": "blue",
+    "hope": "green",
+    "confusion": "purple",
+    "anger": "red",
+    "joy": "gold",
+    "fear": "orange",
+    "neutral": "gray"
+}
 
-    def __init__(self, observer: ObserverEntity):
-        self.observer = observer
-        self.log: List[str] = []
-        self.floor_tags: List[FloorTag] = []
+def render_observer_view(nodes: List[TimelineNode], title="Observer View", return_fig=False, color_by="emotion"):
+    if not nodes:
+        print("No nodes to render.")
+        return None
 
-    def execute(self, command: str, context: Dict[str, Any]) -> Any:
-        """
-        Parses and executes a structured observer command.
-        `context` should include access to agent memories, conflicts, or nodes.
-        """
-        self.log.append(command)
-        cmd = command.strip().lower()
+    data = []
+    for node in nodes:
+        intent = node.intent_meta or {}
+        emotion = intent.get("emotion", "neutral")
+        certainty = intent.get("certainty", 0.5)
 
-        if cmd.startswith("merge"):
-            resolver = ConflictResolver(strategy="merge")
-            return resolver.resolve(context.get("conflicts", []))
+        data.append({
+            "x": node.position[0],
+            "y": node.position[1],
+            "z": node.position[2],
+            "time": node.t.isoformat(),
+            "agent": node.agent_id or "unknown",
+            "desc": node.event_data.get("description", "N/A"),
+            "branch": node.branch_id,
+            "emotion": emotion,
+            "certainty": certainty,
+            "color": emotion_color_map.get(emotion, "gray"),
+            "size": max(5, certainty * 20)  # scale certainty to bubble size
+        })
 
-        elif cmd.startswith("split"):
-            resolver = ConflictResolver(strategy="split")
-            return resolver.resolve(context.get("conflicts", []))
+    df = pd.DataFrame(data)
 
-        elif cmd.startswith("reject"):
-            resolver = ConflictResolver(strategy="reject")
-            return resolver.resolve(context.get("conflicts", []))
+    fig = px.scatter_3d(
+        df,
+        x="x", y="y", z="z",
+        color="emotion",
+        size="size",
+        hover_data=["time", "desc", "agent", "branch", "certainty"],
+        title=title
+    )
 
-        elif cmd.startswith("tag floor"):
-            tag_name = command.split(" ")[-1]
-            nodes = context.get("nodes", [])
-            tag = FloorTag(tag_name, nodes, created_at=datetime.utcnow())
-            self.floor_tags.append(tag)
-            return tag
-
-        elif cmd.startswith("log"):
-            return self.log
-
-        else:
-            raise ValueError(f"Unknown observer command: {command}")
+    if return_fig:
+        return fig
+    else:
+        os.makedirs("output", exist_ok=True)
+        fig.write_html("output/observer_view.html", auto_open=True)

@@ -15,14 +15,14 @@ agent_a.perceive_event(
     t=datetime(1983, 7, 12, 12, 0),
     position=(0, 0, 0),
     event_data={"description": "Mandela funeral"},
-    intent_meta={"emotion": "grief"}
+    intent_meta={"emotion": "grief", "certainty": 0.9}
 )
 
 agent_b.perceive_event(
     t=datetime(1983, 7, 12, 12, 0),
     position=(0, 0, 0),
     event_data={"description": "Mandela speech at UN"},
-    intent_meta={"emotion": "hope"}
+    intent_meta={"emotion": "hope", "certainty": 0.75}
 )
 
 # Step 3: Observer detects timeline divergence

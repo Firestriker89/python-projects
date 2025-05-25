@@ -1,11 +1,10 @@
-from typing import List, Optional, Dict, Any
 from datetime import datetime
+from typing import List, Optional, Dict, Any
 
 class TimelineNode:
     """
-    A commit-like representation of an event in the timeline.
-    Stores when and where it occurred, what was perceived,
-    the agent's state, and its relation to other timeline branches.
+    Represents a snapshot of perceived reality as experienced by an agent at a point in time and space.
+    Includes event content, intent metadata (emotion, certainty, etc.), and branching structure.
     """
 
     def __init__(
@@ -17,17 +16,24 @@ class TimelineNode:
         branch_id: Optional[str] = None,
         agent_id: Optional[str] = None
     ):
-        self.t = t  # Absolute timestamp
-        self.position = position  # x, y, z in space
-        self.event_data = event_data  # Sensory + contextual payload
-        self.intent_meta = intent_meta or {}  # Motivation, emotion, awareness
-        self.branch_id = branch_id or "main"  # Timeline identity
-        self.agent_id = agent_id  # Originating agent
-        
+        self.t = t  # absolute timestamp
+        self.position = position  # (x, y, z) in conceptual or simulated space
+        self.event_data = event_data  # what was observed
+        self.intent_meta = intent_meta or {
+            "emotion": "neutral",     # default affect
+            "certainty": 0.5,         # 0 to 1.0 scale
+            "bias": None,             # optional semantic tag
+            "focus": 1.0              # how much attention was given
+        }
+        self.branch_id = branch_id or "main"
+        self.agent_id = agent_id
+
+        # Relationships to other timeline nodes
         self.parents: List["TimelineNode"] = []
         self.children: List["TimelineNode"] = []
 
     def add_child(self, child_node: "TimelineNode"):
+        """Link this node to a child node."""
         self.children.append(child_node)
         child_node.parents.append(self)
 
