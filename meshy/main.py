@@ -58,3 +58,19 @@ from visualization.branch_graph import render_branch_graph
 
 # Graph includes all agent memories and any resolved/merged nodes
 render_branch_graph(agent_a.memory + agent_b.memory + resolved, title="Meshy Timeline Branch Graph")
+from agents.observer_script import ObserverScriptEngine
+
+engine = ObserverScriptEngine(observer)
+
+# Merge timeline as observer
+resolved = engine.execute("merge conflicts", context={"conflicts": conflicts})
+
+# Tag result
+floor = engine.execute("tag floor floor_1983.v2", context={"nodes": resolved})
+
+# Print log of observer's actions
+print("\nObserver Actions:")
+for entry in engine.log:
+    print(" -", entry)
+
+print(f"\nCreated floor tag: {floor.summary()}")
