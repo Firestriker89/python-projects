@@ -1,38 +1,41 @@
-# Core dependencies
-python-dateutil>=2.8.2
+# Core functionality
+numpy
+pandas
+python-dateutil
 
-# Development dependencies
-pytest>=7.0.0
-pytest-cov>=4.0.0
-black>=22.0.0
-pylint>=2.15.0
-mypy>=1.0.0
+# Optional visualization
+plotly  # Enables future 3D timeline visualizations
 
-# Optional dependencies for enhanced functionality
-# Uncomment as needed:
+# Development tools
+pytest
+pytest-cov
+black
+pylint
+mypy
 
-# For data visualization
-# matplotlib>=3.5.0
-# plotly>=5.0.0
-# networkx>=2.8.0
+# Future options (uncomment as needed):
 
-# For web interface
-# flask>=2.2.0
-# fastapi>=0.85.0
-# uvicorn>=0.18.0
+# For advanced visualization
+# matplotlib
+# networkx
 
-# For database support
-# sqlalchemy>=1.4.0
-# alembic>=1.8.0
+# For web simulation frontend
+# flask
+# fastapi
+# uvicorn
 
-# For configuration management
-# pydantic>=1.10.0
-# python-dotenv>=0.20.0
+# For state persistence
+# sqlalchemy
+# alembic
 
-# For logging and monitoring
-# structlog>=22.0.0
-# prometheus-client>=0.14.0
+# For config management
+# pydantic
+# python-dotenv
 
-# For async support
-# asyncio>=3.4.3
-# aiofiles>=0.8.0
+# For logging and telemetry
+# structlog
+# prometheus-client
+
+# For async simulation engine
+# asyncio
+# aiofiles

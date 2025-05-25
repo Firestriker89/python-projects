@@ -1,149 +1,41 @@
-"""
-Observer Entity Module
+from typing import List, Tuple, Dict
+from agents.human_agent import HumanAgent
+from timeline.node import TimelineNode
 
-This module contains the ObserverEntity class for monitoring and observing system states.
-"""
-
-from typing import Any, Dict, List, Optional, Callable
-from datetime import datetime
-from .base_agent import BaseAgent
-
-
-class ObserverEntity(BaseAgent):
+class ObserverEntity:
     """
-    Observer entity that monitors and records system states and events.
-    
-    Observers can watch specific events, states, or agent behaviors and
-    trigger actions based on observed patterns.
+    Represents a higher-dimensional observer.
+    Can compare timelines from multiple agents and detect conflicts.
     """
-    
-    def __init__(self, 
-                 agent_id: str, 
-                 name: str, 
-                 config: Optional[Dict[str, Any]] = None,
-                 observation_targets: Optional[List[str]] = None):
-        super().__init__(agent_id, name, config)
-        self.observation_targets = observation_targets or []
-        self.observations = []
-        self.triggers = {}
-        self.is_monitoring = False
-        
-    def process(self, input_data: Any) -> Any:
+
+    def __init__(self, observer_id: str = "observer_0"):
+        self.observer_id = observer_id
+
+    def detect_conflicts(self, agents: List[HumanAgent]) -> List[Tuple[TimelineNode, TimelineNode]]:
         """
-        Process input by observing and recording it.
-        
-        Args:
-            input_data: The data to observe
-            
-        Returns:
-            Observation record
+        Compares timeline nodes from different agents to detect contradictory memories.
+        Returns a list of node pairs that conflict in event data but overlap in time and position.
         """
-        if not self.is_active or not self.is_monitoring:
-            return None
-            
-        observation = self._create_observation(input_data)
-        self.observations.append(observation)
-        
-        # Check for triggers
-        self._check_triggers(observation)
-        
-        return observation
-        
-    def update_state(self, new_state: Dict[str, Any]) -> None:
+        conflicts = []
+        all_nodes = [(agent.agent_id, node) for agent in agents for node in agent.memory]
+
+        for i in range(len(all_nodes)):
+            id1, node1 = all_nodes[i]
+            for j in range(i + 1, len(all_nodes)):
+                id2, node2 = all_nodes[j]
+
+                if id1 != id2 and self._is_conflicting(node1, node2):
+                    conflicts.append((node1, node2))
+
+        return conflicts
+
+    def _is_conflicting(self, node1: TimelineNode, node2: TimelineNode) -> bool:
         """
-        Update the observer's state and configuration.
-        
-        Args:
-            new_state: Dictionary containing new state information
+        Basic conflict check: same time and position but different observed event.
+        This is placeholder logic and will evolve.
         """
-        if "observation_targets" in new_state:
-            self.observation_targets = new_state["observation_targets"]
-            
-        if "monitoring" in new_state:
-            self.is_monitoring = new_state["monitoring"]
-            
-    def start_monitoring(self) -> None:
-        """Start monitoring observations."""
-        self.is_monitoring = True
-        
-    def stop_monitoring(self) -> None:
-        """Stop monitoring observations."""
-        self.is_monitoring = False
-        
-    def add_trigger(self, trigger_name: str, condition: Callable, action: Callable) -> None:
-        """
-        Add a trigger that executes an action when a condition is met.
-        
-        Args:
-            trigger_name: Name of the trigger
-            condition: Function that takes an observation and returns bool
-            action: Function to execute when condition is true
-        """
-        self.triggers[trigger_name] = {
-            "condition": condition,
-            "action": action,
-            "triggered_count": 0
-        }
-        
-    def remove_trigger(self, trigger_name: str) -> None:
-        """Remove a trigger by name."""
-        if trigger_name in self.triggers:
-            del self.triggers[trigger_name]
-            
-    def get_observations(self, 
-                        target: Optional[str] = None, 
-                        since: Optional[datetime] = None) -> List[Dict[str, Any]]:
-        """
-        Get observations, optionally filtered by target and time.
-        
-        Args:
-            target: Filter by observation target
-            since: Filter by observations since this datetime
-            
-        Returns:
-            List of matching observations
-        """
-        filtered_observations = self.observations
-        
-        if target:
-            filtered_observations = [
-                obs for obs in filtered_observations 
-                if obs.get("target") == target
-            ]
-            
-        if since:
-            filtered_observations = [
-                obs for obs in filtered_observations 
-                if obs.get("timestamp", datetime.min) >= since
-            ]
-            
-        return filtered_observations
-        
-    def _create_observation(self, input_data: Any) -> Dict[str, Any]:
-        """Create an observation record."""
-        return {
-            "timestamp": datetime.now(),
-            "observer_id": self.agent_id,
-            "data": input_data,
-            "target": getattr(input_data, "target", None),
-            "type": type(input_data).__name__
-        }
-        
-    def _check_triggers(self, observation: Dict[str, Any]) -> None:
-        """Check if any triggers should be activated."""
-        for trigger_name, trigger_config in self.triggers.items():
-            try:
-                if trigger_config["condition"](observation):
-                    trigger_config["action"](observation)
-                    trigger_config["triggered_count"] += 1
-            except Exception as e:
-                print(f"Error in trigger {trigger_name}: {e}")
-                
-    def get_statistics(self) -> Dict[str, Any]:
-        """Get observer statistics."""
-        return {
-            "total_observations": len(self.observations),
-            "is_monitoring": self.is_monitoring,
-            "active_triggers": len(self.triggers),
-            "observation_targets": self.observation_targets
-        }
+        same_time = node1.t == node2.t
+        same_place = node1.position == node2.position
+        different_event = node1.event_data != node2.event_data
+
+        return same_time and same_place and different_event

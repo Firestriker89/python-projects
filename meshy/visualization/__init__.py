@@ -1,18 +1,12 @@
 """
 Visualization Module
 
-This module will contain visualization utilities and components for the meshy system.
-Currently serves as a placeholder for future visualization functionality.
+This module contains visualization utilities and components for the Meshy system:
+- render_3d: 3D timeline and mesh rendering capabilities
+- observer_view: Observer-specific visualization tools
 """
 
-# Placeholder for visualization functionality
-# Future features might include:
-# - Timeline visualization
-# - Agent interaction graphs
-# - Conflict resolution visualizations
-# - System state dashboards
+from .render_3d import render_timeline_nodes
+from .observer_view import ObserverView
 
-__version__ = "0.1.0"
-__author__ = "Meshy Team"
-
-# TODO: Implement visualization components
+__all__ = ["render_timeline_nodes", "ObserverView"]

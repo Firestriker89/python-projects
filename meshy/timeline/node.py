@@ -1,44 +1,38 @@
-"""
-Timeline Node Module
-
-This module contains the Node class for representing timeline events and states.
-"""
-
-from typing import Any, Dict, Optional, List
+from typing import List, Optional, Dict, Any
 from datetime import datetime
 
+class TimelineNode:
+    """
+    A commit-like representation of an event in the timeline.
+    Stores when and where it occurred, what was perceived,
+    the agent's state, and its relation to other timeline branches.
+    """
 
-class Node:
-    """
-    Represents a node in the timeline system.
-    
-    Each node can represent an event, state, or decision point in the timeline.
-    """
-    
-    def __init__(self, 
-                 node_id: str, 
-                 timestamp: Optional[datetime] = None,
-                 data: Optional[Dict[str, Any]] = None,
-                 parent: Optional['Node'] = None):
-        self.node_id = node_id
-        self.timestamp = timestamp or datetime.now()
-        self.data = data or {}
-        self.parent = parent
-        self.children: List['Node'] = []
+    def __init__(
+        self,
+        t: datetime,
+        position: tuple[float, float, float],
+        event_data: Dict[str, Any],
+        intent_meta: Optional[Dict[str, Any]] = None,
+        branch_id: Optional[str] = None,
+        agent_id: Optional[str] = None
+    ):
+        self.t = t  # Absolute timestamp
+        self.position = position  # x, y, z in space
+        self.event_data = event_data  # Sensory + contextual payload
+        self.intent_meta = intent_meta or {}  # Motivation, emotion, awareness
+        self.branch_id = branch_id or "main"  # Timeline identity
+        self.agent_id = agent_id  # Originating agent
         
-    def add_child(self, child: 'Node') -> None:
-        """Add a child node to this node."""
-        child.parent = self
-        self.children.append(child)
-        
-    def get_path(self) -> List['Node']:
-        """Get the path from root to this node."""
-        path = []
-        current = self
-        while current:
-            path.insert(0, current)
-            current = current.parent
-        return path
-        
-    def __repr__(self) -> str:
-        return f"Node(id={self.node_id}, timestamp={self.timestamp})"
+        self.parents: List["TimelineNode"] = []
+        self.children: List["TimelineNode"] = []
+
+    def add_child(self, child_node: "TimelineNode"):
+        self.children.append(child_node)
+        child_node.parents.append(self)
+
+    def summary(self) -> str:
+        return f"[{self.t.isoformat()}] @ {self.position} by {self.agent_id or 'unknown'}"
+
+    def __repr__(self):
+        return f"<TimelineNode {self.summary()} branch={self.branch_id}>"

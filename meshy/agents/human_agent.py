@@ -1,84 +1,41 @@
-"""
-Human Agent Module
+from datetime import datetime
+from typing import List, Dict, Any
+from timeline.node import TimelineNode
 
-This module contains the HumanAgent class for representing human participants.
-"""
-
-from typing import Any, Dict, Optional
-from .base_agent import BaseAgent
-
-
-class HumanAgent(BaseAgent):
+class HumanAgent:
     """
-    Represents a human agent in the system.
-    
-    Human agents can interact with the system through various interfaces
-    and provide human input and decision-making capabilities.
+    Represents a human observer.
+    Capable of perceiving events and committing them as TimelineNodes.
     """
-    
-    def __init__(self, 
-                 agent_id: str, 
-                 name: str, 
-                 config: Optional[Dict[str, Any]] = None,
-                 interface_type: str = "console"):
-        super().__init__(agent_id, name, config)
-        self.interface_type = interface_type
-        self.interaction_history = []
-        
-    def process(self, input_data: Any) -> Any:
+
+    def __init__(self, agent_id: str):
+        self.agent_id = agent_id
+        self.memory: List[TimelineNode] = []
+
+    def perceive_event(
+        self,
+        t: datetime,
+        position: tuple[float, float, float],
+        event_data: Dict[str, Any],
+        intent_meta: Dict[str, Any] = {}
+    ) -> TimelineNode:
         """
-        Process input by presenting it to the human and collecting response.
-        
-        Args:
-            input_data: The data to present to the human
-            
-        Returns:
-            Human's response/decision
+        Simulates the perception of an event at a point in time and space.
+        Commits it to the agent's memory as a TimelineNode.
         """
-        if not self.is_active:
-            return None
-            
-        # Record the interaction
-        interaction = {
-            "timestamp": self.created_at,
-            "input": input_data,
-            "response": None
-        }
-        
-        if self.interface_type == "console":
-            response = self._console_interaction(input_data)
-        else:
-            response = self._default_interaction(input_data)
-            
-        interaction["response"] = response
-        self.interaction_history.append(interaction)
-        
-        return response
-        
-    def update_state(self, new_state: Dict[str, Any]) -> None:
-        """
-        Update the human agent's state and preferences.
-        
-        Args:
-            new_state: Dictionary containing new state information
-        """
-        if "preferences" in new_state:
-            self.config.update(new_state["preferences"])
-            
-        if "interface_type" in new_state:
-            self.interface_type = new_state["interface_type"]
-            
-    def _console_interaction(self, input_data: Any) -> str:
-        """Handle console-based interaction with human."""
-        print(f"\n[{self.name}] Input: {input_data}")
-        response = input(f"[{self.name}] Your response: ")
-        return response
-        
-    def _default_interaction(self, input_data: Any) -> Any:
-        """Default interaction method."""
-        # For now, return a placeholder response
-        return f"Human response to: {input_data}"
-        
-    def get_interaction_count(self) -> int:
-        """Get the total number of interactions."""
-        return len(self.interaction_history)
+        node = TimelineNode(
+            t=t,
+            position=position,
+            event_data=event_data,
+            intent_meta=intent_meta,
+            branch_id="main",
+            agent_id=self.agent_id
+        )
+        self.memory.append(node)
+        return node
+
+    def get_memory_summary(self) -> List[str]:
+        return [node.summary() for node in self.memory]
+
+    def __repr__(self):
+        return f"<HumanAgent {self.agent_id} | {len(self.memory)} memorie_s>"
