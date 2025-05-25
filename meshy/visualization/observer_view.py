@@ -1,111 +1,49 @@
-"""
-Observer View Module
-
-This module provides observer-specific visualization capabilities for the Meshy system.
-Includes tools for visualizing observer data, monitoring dashboards, and observer interactions.
-"""
-
-from typing import List, Dict, Any, Optional
 from datetime import datetime
+from typing import List, Dict, Any
+from agents.observer_entity import ObserverEntity
+from reality.conflict_resolver import ConflictResolver
+from reality.floor import FloorTag
+from timeline.node import TimelineNode
 
+class ObserverScriptEngine:
+    """
+    Allows an observer to execute commands to manipulate the timeline structure.
+    """
 
-class ObserverView:
-    """
-    Visualization component for observer entities and their data.
-    
-    Provides methods to create interactive dashboards and visualizations
-    specifically for observer monitoring and analysis.
-    """
-    
-    def __init__(self, observer_id: str = None):
+    def __init__(self, observer: ObserverEntity):
+        self.observer = observer
+        self.log: List[str] = []
+        self.floor_tags: List[FloorTag] = []
+
+    def execute(self, command: str, context: Dict[str, Any]) -> Any:
         """
-        Initialize the observer view.
-        
-        Args:
-            observer_id: Optional ID of specific observer to focus on
+        Parses and executes a structured observer command.
+        `context` should include access to agent memories, conflicts, or nodes.
         """
-        self.observer_id = observer_id
-        self.view_config = {
-            "theme": "dark",
-            "auto_refresh": True,
-            "refresh_interval": 5  # seconds
-        }
-        
-    def create_monitoring_dashboard(self, observers: List[Any]) -> str:
-        """
-        Create a monitoring dashboard for observer entities.
-        
-        Args:
-            observers: List of observer entities to monitor
-            
-        Returns:
-            HTML string for the dashboard
-        """
-        # Placeholder implementation
-        html_content = f"""
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <title>Observer Monitoring Dashboard</title>
-            <style>
-                body {{ font-family: Arial, sans-serif; margin: 20px; }}
-                .observer-card {{ border: 1px solid #ccc; margin: 10px; padding: 15px; }}
-                .status {{ font-weight: bold; }}
-            </style>
-        </head>
-        <body>
-            <h1>Observer Monitoring Dashboard</h1>
-            <p>Generated at: {datetime.now()}</p>
-            <div id="observers">
-                <!-- Observer cards will be inserted here -->
-            </div>
-        </body>
-        </html>
-        """
-        return html_content
-        
-    def create_observation_timeline(self, observations: List[Dict[str, Any]]) -> str:
-        """
-        Create a timeline visualization of observations.
-        
-        Args:
-            observations: List of observation data
-            
-        Returns:
-            HTML string for the timeline
-        """
-        # Placeholder implementation
-        return "<div>Observation Timeline - To be implemented</div>"
-        
-    def create_trigger_analysis(self, triggers: Dict[str, Any]) -> str:
-        """
-        Create visualization for trigger analysis.
-        
-        Args:
-            triggers: Dictionary of trigger data
-            
-        Returns:
-            HTML string for trigger analysis
-        """
-        # Placeholder implementation
-        return "<div>Trigger Analysis - To be implemented</div>"
-        
-    def export_observer_report(self, observer: Any, output_path: str) -> None:
-        """
-        Export a comprehensive report for an observer.
-        
-        Args:
-            observer: Observer entity to report on
-            output_path: Path to save the report
-        """
-        # Placeholder implementation
-        pass
-        
-    def configure_view(self, **kwargs) -> None:
-        """
-        Configure view settings.
-        
-        Args:
-            **kwargs: Configuration parameters
-        """
-        self.view_config.update(kwargs)
+        self.log.append(command)
+        cmd = command.strip().lower()
+
+        if cmd.startswith("merge"):
+            resolver = ConflictResolver(strategy="merge")
+            return resolver.resolve(context.get("conflicts", []))
+
+        elif cmd.startswith("split"):
+            resolver = ConflictResolver(strategy="split")
+            return resolver.resolve(context.get("conflicts", []))
+
+        elif cmd.startswith("reject"):
+            resolver = ConflictResolver(strategy="reject")
+            return resolver.resolve(context.get("conflicts", []))
+
+        elif cmd.startswith("tag floor"):
+            tag_name = command.split(" ")[-1]
+            nodes = context.get("nodes", [])
+            tag = FloorTag(tag_name, nodes, created_at=datetime.utcnow())
+            self.floor_tags.append(tag)
+            return tag
+
+        elif cmd.startswith("log"):
+            return self.log
+
+        else:
+            raise ValueError(f"Unknown observer command: {command}")

@@ -74,3 +74,28 @@ for entry in engine.log:
     print(" -", entry)
 
 print(f"\nCreated floor tag: {floor.summary()}")
+from visualization.branch_graph import render_branch_graph
+from visualization.observer_view import render_observer_view
+
+context = {"conflicts": conflicts, "nodes": resolved}
+
+while True:
+    cmd = input("\n[observer]> ").strip()
+    if cmd.lower() in {"exit", "quit"}:
+        break
+    try:
+        result = engine.execute(cmd, context=context)
+
+        # Update visualization after every command
+        merged_nodes = context.get("nodes", [])  # This should be updated if 'merge' returns something
+        render_observer_view(agent_a.memory + agent_b.memory + merged_nodes, title="Observer View")
+        render_branch_graph(agent_a.memory + agent_b.memory + merged_nodes, title="Branch Graph")
+
+        print("→", result if not isinstance(result, list) else f"{len(result)} item(s) affected.")
+        
+        # Optionally: update context
+        if cmd.startswith("merge"):
+            context["nodes"] = result
+
+    except Exception as e:
+        print("Error:", e)
